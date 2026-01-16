@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SPACE TOWN | VIP Access System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Orbitron:wght@400;700;900&display=swap');
+      
+      body {
+        font-family: 'Inter', sans-serif;
+        background: #050505;
+        color: #fff;
+        overflow-x: hidden;
+      }
+
+      .font-orbitron { font-family: 'Orbitron', sans-serif; }
+
+      /* Animación de Neón */
+      .neon-border {
+        box-shadow: 0 0 15px rgba(139, 92, 246, 0.3), inset 0 0 10px rgba(139, 92, 246, 0.2);
+      }
+      
+      .neon-text {
+        text-shadow: 0 0 10px rgba(139, 92, 246, 0.8), 0 0 20px rgba(139, 92, 246, 0.4);
+      }
+
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-track { background: #050505; }
+      ::-webkit-scrollbar-thumb { background: #1f1f23; border-radius: 10px; }
+      ::-webkit-scrollbar-thumb:hover { background: #8b5cf6; }
+    </style>
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://aistudiocdn.com/react@^19.2.0",
+        "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+        "react/": "https://aistudiocdn.com/react@^19.2.0/",
+        "jspdf": "https://esm.sh/jspdf@2.5.1"
+      }
+    }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

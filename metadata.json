@@ -1,0 +1,7 @@
+{
+  "name": "SPACETOWN",
+  "description": "A modern, responsive web application for nightclub access registration. Users can fill in their details, upload a selfie, and provide an on-screen signature.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
