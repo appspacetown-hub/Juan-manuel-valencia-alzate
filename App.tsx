@@ -88,12 +88,10 @@ const App: React.FC = () => {
     const h = doc.internal.pageSize.getHeight();
     const margin = 20;
     
-    // Marco exterior de seguridad
     doc.setDrawColor(40, 40, 40);
     doc.setLineWidth(0.1);
     doc.rect(10, 10, w - 20, h - 20);
 
-    // Encabezado Formal
     doc.setFillColor(240, 240, 245);
     doc.rect(margin, margin, w - (margin * 2), 25, 'F');
     try { doc.addImage(LOGO_PNG, 'PNG', margin + 5, margin + 2, 20, 20); } catch(e) {}
@@ -112,7 +110,6 @@ const App: React.FC = () => {
     doc.text(`DOC ID: ${formData.documentNumber || 'N/A'}`, w - margin - 5, margin + 10, { align: 'right' });
     doc.text(`FOLIO: ${Math.floor(Math.random()*9000)+1000}`, w - margin - 5, margin + 15, { align: 'right' });
 
-    // Footer
     doc.setFontSize(7);
     doc.text(`Documento generado digitalmente - PÁGINA ${page}`, w/2, h - 15, { align: 'center' });
     doc.text(`Timestamp: ${getFullTimestamp()}`, w/2, h - 12, { align: 'center' });
@@ -124,8 +121,8 @@ const App: React.FC = () => {
     e.preventDefault();
     const signature = signaturePadRef.current?.getSignature();
     
-    if (!formData.fullName || !formData.documentNumber || !formData.selfie || !signature) {
-      alert("⚠️ Complete todos los campos.");
+    if (!formData.fullName || !formData.documentNumber || !formData.selfie || !signature || !isSigned) {
+      alert("⚠️ Complete todos los campos, incluída la firma.");
       return;
     }
 
@@ -136,7 +133,6 @@ const App: React.FC = () => {
       const doc = new jsPDF();
       let y = applyLegalTemplate(doc, "Registro de Ingreso", 1);
       
-      // SECCIÓN 1: DATOS DEL TITULAR
       doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
       doc.text("1. IDENTIFICACIÓN DEL TITULAR", 20, y);
@@ -157,7 +153,6 @@ const App: React.FC = () => {
         y += 7;
       });
 
-      // SECCIÓN 2: EVIDENCIA BIOMÉTRICA
       y += 5;
       doc.setFont("helvetica", "bold");
       doc.text("2. REGISTRO FOTOGRÁFICO DE SEGURIDAD", 20, y);
@@ -165,7 +160,6 @@ const App: React.FC = () => {
       doc.addImage(formData.selfie, 'JPEG', 25, y, 40, 40);
       if (formData.documentFront) doc.addImage(formData.documentFront, 'JPEG', 75, y, 55, 35);
       
-      // SECCIÓN 3: TÉRMINOS Y CONDICIONES (TEXTO REAL)
       y += 50;
       doc.setFontSize(9);
       doc.setFont("helvetica", "bold");
@@ -187,7 +181,6 @@ const App: React.FC = () => {
         y += 6;
       });
 
-      // SECCIÓN 4: DECLARACIÓN DE VOLUNTAD Y FIRMA
       y += 5;
       doc.setFont("helvetica", "bold");
       doc.text("4. ACEPTACIÓN Y FIRMA DIGITAL", 20, y);
@@ -369,7 +362,19 @@ const App: React.FC = () => {
                 ))}
               </div>
               <div className="space-y-6">
-                <label className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.4em] block">Firma de Consentimiento Legal</label>
+                <div className="flex justify-between items-end mb-2">
+                  <label className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.4em] ml-2">Firma de Consentimiento Legal</label>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      signaturePadRef.current?.clear();
+                      setIsSigned(false);
+                    }}
+                    className="text-[8px] font-black text-violet-500 uppercase tracking-widest hover:text-white transition-colors"
+                  >
+                    [ Borrar Firma ]
+                  </button>
+                </div>
                 <div className="h-60 bg-black/60 border border-zinc-800 rounded-[3rem] relative overflow-hidden focus-within:border-violet-600 transition-all shadow-inner">
                   <SignaturePad ref={signaturePadRef} onDrawStart={() => setIsSigned(true)} />
                 </div>
