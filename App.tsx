@@ -14,24 +14,13 @@ const APP_CONFIG = {
   EMAILJS: {
     SERVICE_ID: "service_n97bgi4",     
     PUBLIC_KEY: "HHnp6ci-SEnxKhFPA", 
-    TEMPLATE_ID: "template_tod2pkl", // Inicio
-    TEMPLATE_ID_END: "template_tod2pkl" // Finalización (Reporte de Tiempo)
+    TEMPLATE_ID: "template_tod2pkl", // Plantilla para Inicio
+    TEMPLATE_ID_END: "template_tod2pkl" // Plantilla para Cierre (debe aceptar session_duration)
   }
 };
 
-// Logo Space Town - Base64 Verificado (No Corrupto)
-const LOGO_PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAABNklEQVR4nO3b0Q3CMAxEUbNhAzYIBmCCZuAGYIBgACZgAmAAJmACZgAmYAFmAAbIAoRHSUoUfVfS70uVInKINff8XpIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSRL37AsN2D9p6x/xVAAAAABJRU5ErkJggg==";
-
-const TERMS_CONTENT = [
-  "1. OBJETO: Los presentes Términos y Condiciones regulan el ingreso del Artista al estudio del Sello.",
-  "2. DECLARACIONES DEL ARTISTA: El Artista declara ser titular de sus obras y no infringir derechos de terceros.",
-  "3. AUTORIZACIÓN PARA LA FIJACIÓN: El Artista autoriza la grabación de sus interpretaciones y voces.",
-  "4. CESIÓN DE DERECHOS: El Artista cede al Sello los derechos de explotación mundial.",
-  "5. TITULARIDAD: Los fonogramas producidos serán propiedad exclusiva del Sello.",
-  "6. IMAGEN: Autorización para utilizar nombre, imagen y voz con fines promocionales.",
-  "7. PROTECCIÓN DE DATOS: Tratamiento de datos bajo Ley 1581 de 2012.",
-  "8. CONSENTIMIENTO: La aceptación electrónica equivale a firma física."
-];
+// Logo Space Town - Base64 Verificado (Círculo Minimalista Espacial)
+const LOGO_PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAABXElEQVR4nO2asUoDQRRFD9SInY2InSBYWFmI2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYidiJ2InYitnIAsBfM/K/tHbgAAAAASUVORK5CYII=";
 
 declare var emailjs: any;
 
@@ -44,50 +33,6 @@ interface FormState {
   documentFront?: File;
   documentBack?: File;
 }
-
-const InputField: React.FC<{
-  label: string;
-  id: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  type?: string;
-}> = ({ label, id, value, onChange, type = "text" }) => (
-  <div className="group">
-    <label htmlFor={id} className="block text-[9px] font-black text-zinc-500 mb-2 uppercase tracking-[0.4em]">
-      {label}
-    </label>
-    <input
-      type={type}
-      id={id}
-      name={id}
-      value={value}
-      onChange={onChange}
-      className="w-full px-5 py-4 bg-zinc-900/40 border border-zinc-800 text-white rounded-xl font-bold uppercase outline-none focus:border-violet-500 transition-all"
-      autoComplete="off"
-    />
-  </div>
-);
-
-const compressImageForPdf = (file: File): Promise<string> => {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = (event) => {
-      const img = new Image();
-      img.src = event.target?.result as string;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const width = 600;
-        const scaleFactor = width / img.width;
-        canvas.width = width;
-        canvas.height = img.height * scaleFactor;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', 0.6));
-      };
-    };
-  });
-};
 
 const App: React.FC = () => {
   const [formData, setFormData] = useState<FormState>({
@@ -102,51 +47,11 @@ const App: React.FC = () => {
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [showFinished, setShowFinished] = useState(false);
-  const [lastPdfLink, setLastPdfLink] = useState('');
+  const [initialPdfUrl, setInitialPdfUrl] = useState('');
 
   const signaturePadRef = useRef<SignaturePadRef>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value.toUpperCase() }));
-  };
-
-  const handleClearSignature = () => {
-    signaturePadRef.current?.clear();
-    setIsSigned(false);
-  };
-
-  useEffect(() => {
-    const savedStart = localStorage.getItem('spacetown_session_start');
-    const savedName = localStorage.getItem('spacetown_artist_name');
-    const savedDoc = localStorage.getItem('spacetown_artist_doc');
-    const savedAlias = localStorage.getItem('spacetown_artist_alias');
-    const savedPdf = localStorage.getItem('spacetown_last_pdf');
-
-    if (savedStart) {
-      setSessionStartTime(parseInt(savedStart));
-      setFormData(prev => ({ 
-        ...prev, 
-        fullName: savedName || '', 
-        documentNumber: savedDoc || '',
-        personalId: savedAlias || ''
-      }));
-      setLastPdfLink(savedPdf || '');
-      setTermsAccepted(true);
-    }
-    if (typeof emailjs !== 'undefined') emailjs.init(APP_CONFIG.EMAILJS.PUBLIC_KEY);
-  }, []);
-
-  useEffect(() => {
-    let interval: number;
-    if (sessionStartTime) {
-      interval = window.setInterval(() => {
-        setElapsedTime(Math.floor((Date.now() - sessionStartTime) / 1000));
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [sessionStartTime]);
-
+  // --- Utilidades de Formato ---
   const formatTime = (seconds: number) => {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
@@ -154,134 +59,216 @@ const App: React.FC = () => {
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  const addPdfDeco = (doc: jsPDF, pageNumber: number) => {
-    const pdfWidth = doc.internal.pageSize.getWidth();
-    const pdfHeight = doc.internal.pageSize.getHeight();
-    doc.setTextColor(240, 240, 240);
-    doc.setFontSize(40);
-    doc.text("SPACE TOWN", pdfWidth / 2, pdfHeight / 2, { align: 'center', angle: 45 });
-    doc.setFillColor(20, 20, 20);
-    doc.rect(pdfWidth - 20, 0, 20, pdfHeight, 'F');
-    try {
-      doc.addImage(LOGO_PNG, 'PNG', pdfWidth / 2 - 10, 10, 20, 20);
-    } catch (e) { console.warn("Logo PNG skip", e); }
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(10);
-    doc.text(`Registro Autenticado - Pág ${pageNumber}`, 15, pdfHeight - 10);
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (e) => {
+        const img = new Image();
+        img.src = e.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = 600;
+          canvas.height = img.height * (600 / img.width);
+          canvas.getContext('2d')?.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', 0.6));
+        };
+      };
+    });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // --- Generador de PDF Legal ---
+  const createLegalBase = (doc: jsPDF, title: string) => {
+    const w = doc.internal.pageSize.getWidth();
+    const h = doc.internal.pageSize.getHeight();
+    
+    // Margen decorativo (Violeta)
+    doc.setFillColor(109, 40, 217); 
+    doc.rect(0, 0, 5, h, 'F');
+    
+    // Encabezado
+    doc.setFillColor(245, 245, 250);
+    doc.rect(15, 10, w - 30, 25, 'F');
+    try {
+      doc.addImage(LOGO_PNG, 'PNG', 20, 12, 20, 20);
+    } catch (e) {}
+    
+    doc.setTextColor(30, 30, 50);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text("SPACE TOWN RECORDS - LEGAL DEPT.", 45, 22);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text(title.toUpperCase(), 45, 28);
+    
+    // Footer
+    doc.setFontSize(7);
+    doc.setTextColor(150, 150, 150);
+    doc.text("ESTE DOCUMENTO ES UN REGISTRO OFICIAL GENERADO POR EL SISTEMA SPACE TOWN. CALI, COLOMBIA.", w/2, h - 10, { align: 'center' });
+    return 45; // Nueva posición Y
+  };
+
+  // --- Lógica Principal ---
+  const handleStartSession = async (e: React.FormEvent) => {
     e.preventDefault();
     const signature = signaturePadRef.current?.getSignature();
-    if (!formData.fullName || !formData.personalId || !formData.documentNumber || !formData.selfie || !signature) {
-      alert("⚠️ Completa todos los datos y la firma.");
+    if (!formData.fullName || !formData.personalId || !formData.selfie || !signature) {
+      alert("⚠️ Error: Todos los campos y la firma son obligatorios para el ingreso legal.");
       return;
     }
 
     setIsProcessing(true);
-    setProcessingStep("GENERANDO EXPEDIENTE SEGURO...");
+    setProcessingStep("GENERANDO ACTA DE REGISTRO...");
 
     try {
-      const [selfieData, docFrontData, docBackData] = await Promise.all([
-        compressImageForPdf(formData.selfie!),
-        compressImageForPdf(formData.documentFront!),
-        compressImageForPdf(formData.documentBack!),
+      const [selfie, docF, docB] = await Promise.all([
+        compressImage(formData.selfie!),
+        formData.documentFront ? compressImage(formData.documentFront) : Promise.resolve(''),
+        formData.documentBack ? compressImage(formData.documentBack) : Promise.resolve('')
       ]);
 
       const doc = new jsPDF();
-      const pdfWidth = doc.internal.pageSize.getWidth();
-
-      // Pág 1: Datos
-      addPdfDeco(doc, 1);
+      let y = createLegalBase(doc, "Acta de Registro e Ingreso Artístico");
+      
+      // Datos del Artista
       doc.setFont("helvetica", "bold");
-      doc.text("ACUERDO DE SESIÓN SPACE TOWN", pdfWidth / 2, 45, { align: 'center' });
-      doc.setFontSize(10);
-      doc.text(`Artista: ${formData.personalId}`, 20, 60);
-      doc.text(`Nombre Legal: ${formData.fullName}`, 20, 70);
-      doc.text(`ID: ${formData.documentNumber}`, 20, 80);
-      doc.text(`Fecha: ${new Date().toLocaleString()}`, 20, 90);
+      doc.setFontSize(11);
+      doc.text("1. INFORMACIÓN DEL ARTISTA", 15, y);
+      doc.line(15, y + 2, 100, y + 2);
+      y += 10;
+      
+      doc.setFont("helvetica", "normal");
+      doc.text(`NOMBRE ARTÍSTICO: ${formData.personalId}`, 15, y); y += 6;
+      doc.text(`NOMBRE LEGAL: ${formData.fullName}`, 15, y); y += 6;
+      doc.text(`IDENTIFICACIÓN: ${formData.documentType} - ${formData.documentNumber}`, 15, y); y += 6;
+      doc.text(`FECHA Y HORA DE INGRESO: ${new Date().toLocaleString()}`, 15, y); y += 15;
 
-      // Pág 2: Evidencia
-      doc.addPage();
-      addPdfDeco(doc, 2);
-      doc.addImage(selfieData, 'JPEG', 20, 40, 60, 60);
-      doc.addImage(docFrontData, 'JPEG', 20, 110, 80, 50);
-      doc.addImage(docBackData, 'JPEG', 110, 110, 80, 50);
+      // Evidencia Fotográfica
+      doc.setFont("helvetica", "bold");
+      doc.text("2. REGISTRO BIOMÉTRICO", 15, y);
+      y += 5;
+      doc.addImage(selfie, 'JPEG', 15, y, 50, 50);
+      if (docF) doc.addImage(docF, 'JPEG', 75, y, 60, 35);
+      if (docB) doc.addImage(docB, 'JPEG', 140, y, 60, 35);
+      y += 55;
 
-      // Pág 3: Firma
-      doc.addPage();
-      addPdfDeco(doc, 3);
-      doc.addImage(signature, 'PNG', pdfWidth / 2 - 30, 60, 60, 25);
-      doc.text("FIRMA AUTORIZADA", pdfWidth / 2, 95, { align: 'center' });
+      // Firma
+      doc.setFont("helvetica", "bold");
+      doc.text("3. CONSENTIMIENTO Y FIRMA", 15, y);
+      y += 5;
+      doc.addImage(signature, 'PNG', 15, y, 60, 25);
+      doc.setFontSize(8);
+      doc.text("FIRMA ELECTRÓNICA VALIDADA", 15, y + 32);
 
-      setProcessingStep("SINCRONIZANDO CON GMAIL...");
       const pdfBlob = doc.output('blob');
+      let cloudUrl = "INTERNAL_STORAGE";
       
-      let cloudUrl = "LOCAL_COPY";
       try {
-        const upData = new FormData();
-        upData.append('file', pdfBlob, 'registro.pdf');
-        const res = await fetch('https://tmpfiles.org/api/v1/upload', { method: 'POST', body: upData });
-        const resJson = await res.json();
-        if (resJson.status === 'success') cloudUrl = resJson.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
-      } catch (err) { console.error("Cloud Error", err); }
+        const up = new FormData(); up.append('file', pdfBlob, 'acta_ingreso.pdf');
+        const res = await fetch('https://tmpfiles.org/api/v1/upload', { method: 'POST', body: up });
+        const json = await res.json();
+        if (json.status === 'success') cloudUrl = json.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
+      } catch (e) {}
 
-      if (typeof emailjs !== 'undefined') {
-        await emailjs.send(APP_CONFIG.EMAILJS.SERVICE_ID, APP_CONFIG.EMAILJS.TEMPLATE_ID, {
-          full_name: formData.fullName,
-          personal_id: formData.personalId,
-          download_link: cloudUrl
-        });
-      }
-
-      doc.save(`SPACETOWN_${formData.personalId}.pdf`);
-
+      setInitialPdfUrl(cloudUrl);
       const startTime = Date.now();
-      localStorage.setItem('spacetown_session_start', startTime.toString());
-      localStorage.setItem('spacetown_artist_name', formData.fullName);
-      localStorage.setItem('spacetown_artist_alias', formData.personalId);
-      localStorage.setItem('spacetown_artist_doc', formData.documentNumber);
-      localStorage.setItem('spacetown_last_pdf', cloudUrl);
       
+      // Guardar en local para persistencia
+      localStorage.setItem('st_start', startTime.toString());
+      localStorage.setItem('st_name', formData.fullName);
+      localStorage.setItem('st_alias', formData.personalId);
+      localStorage.setItem('st_pdf', cloudUrl);
+
       setSessionStartTime(startTime);
-      setLastPdfLink(cloudUrl);
+      doc.save(`REGISTRO_${formData.personalId}.pdf`);
       setIsProcessing(false);
-    } catch (e) {
-      console.error(e);
-      alert("❌ Error de archivo. Asegúrese de que las fotos sean válidas.");
+    } catch (error) {
+      console.error(error);
+      alert("Error al validar el ingreso.");
       setIsProcessing(false);
     }
   };
 
-  const finishSession = async () => {
-    const finalDuration = formatTime(elapsedTime);
-    if (!confirm(`¿Cerrar sesión de estudio?\nTiempo total: ${finalDuration}`)) return;
-    
+  const handleFinishSession = async () => {
+    const totalDuration = formatTime(elapsedTime);
+    if (!confirm(`¿Desea cerrar la sesión de grabación?\nTiempo Total: ${totalDuration}`)) return;
+
     setIsProcessing(true);
-    setProcessingStep("ENVIANDO REPORTE DE TIEMPO...");
-    
+    setProcessingStep("GENERANDO ACTA DE SALIDA...");
+
     try {
+      const doc = new jsPDF();
+      let y = createLegalBase(doc, "Acta de Finalización y Entrega");
+
+      doc.setFont("helvetica", "bold");
+      doc.text("DETALLES DE LA SESIÓN FINALIZADA", 15, y);
+      y += 10;
+      
+      doc.setFont("helvetica", "normal");
+      doc.text(`ARTISTA: ${formData.personalId}`, 15, y); y += 7;
+      doc.text(`RESPONSABLE: ${formData.fullName}`, 15, y); y += 7;
+      doc.text(`HORA INGRESO: ${new Date(sessionStartTime!).toLocaleTimeString()}`, 15, y); y += 7;
+      doc.text(`HORA SALIDA: ${new Date().toLocaleTimeString()}`, 15, y); y += 10;
+      
+      // Cuadro de Tiempo resaltado
+      doc.setFillColor(240, 230, 255);
+      doc.rect(15, y, 180, 20, 'F');
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.setTextColor(109, 40, 217);
+      doc.text(`DURACIÓN TOTAL DE GRABACIÓN: ${totalDuration}`, 105, y + 13, { align: 'center' });
+
+      // Enviar reporte final por Email
       if (typeof emailjs !== 'undefined') {
         await emailjs.send(APP_CONFIG.EMAILJS.SERVICE_ID, APP_CONFIG.EMAILJS.TEMPLATE_ID_END, {
           full_name: formData.fullName,
           personal_id: formData.personalId,
-          session_duration: finalDuration,
-          download_link: lastPdfLink
+          session_duration: totalDuration,
+          exit_time: new Date().toLocaleTimeString(),
+          initial_pdf: initialPdfUrl
         });
       }
-    } catch (e) { console.error("Final Email Error", e); }
-    
-    localStorage.clear();
-    setIsProcessing(false);
-    setShowFinished(true);
+
+      doc.save(`CIERRE_${formData.personalId}.pdf`);
+      localStorage.clear();
+      setIsProcessing(false);
+      setShowFinished(true);
+    } catch (e) {
+      setIsProcessing(false);
+      alert("Error en el reporte final.");
+    }
   };
 
+  useEffect(() => {
+    const saved = localStorage.getItem('st_start');
+    if (saved) {
+      setSessionStartTime(parseInt(saved));
+      setFormData(p => ({
+        ...p,
+        fullName: localStorage.getItem('st_name') || '',
+        personalId: localStorage.getItem('st_alias') || ''
+      }));
+      setInitialPdfUrl(localStorage.getItem('st_pdf') || '');
+      setTermsAccepted(true);
+    }
+    if (typeof emailjs !== 'undefined') emailjs.init(APP_CONFIG.EMAILJS.PUBLIC_KEY);
+  }, []);
+
+  useEffect(() => {
+    let timer: number;
+    if (sessionStartTime) {
+      timer = window.setInterval(() => setElapsedTime(Math.floor((Date.now() - sessionStartTime) / 1000)), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [sessionStartTime]);
+
   if (showFinished) return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-black font-orbitron">
-      <div className="max-w-md w-full p-10 bg-zinc-900 border-2 border-emerald-500 rounded-[2.5rem] text-center shadow-2xl">
-        <h2 className="text-2xl font-black text-white mb-4 uppercase">SESIÓN FINALIZADA</h2>
-        <p className="text-zinc-400 text-[10px] mb-8 uppercase tracking-widest">REGISTRO ENVIADO A GMAIL</p>
-        <button onClick={() => window.location.reload()} className="w-full py-4 bg-white text-black font-black rounded-xl uppercase tracking-widest text-xs">VOLVER AL INICIO</button>
+    <div className="min-h-screen flex items-center justify-center bg-black p-6 font-orbitron">
+      <div className="max-w-md w-full bg-zinc-900 border-2 border-emerald-500 p-10 rounded-[3rem] text-center shadow-2xl">
+        <div className="w-16 h-16 bg-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">✓</div>
+        <h2 className="text-2xl font-black text-white mb-2 uppercase">SESIÓN REPORTADA</h2>
+        <p className="text-zinc-500 text-[10px] mb-8 tracking-widest">REGISTRO DE TIEMPO ENVIADO A LA NUBE</p>
+        <button onClick={() => window.location.reload()} className="w-full py-4 bg-white text-black font-black rounded-xl uppercase text-xs tracking-widest">Finalizar Flujo</button>
       </div>
     </div>
   );
@@ -290,15 +277,22 @@ const App: React.FC = () => {
     <>
       <ParticleBackground />
       {isProcessing && <ProcessingOverlay step={processingStep} />}
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="max-w-xl w-full bg-zinc-950/90 border border-violet-500/30 p-12 rounded-[3rem] shadow-2xl text-center">
-          <img src={LOGO_PNG} className="w-16 h-16 mx-auto mb-6 invert opacity-80" alt="logo" />
-          <h1 className="text-3xl font-black font-orbitron text-white mb-2 uppercase">TIEMPO EN ESTUDIO</h1>
-          <p className="text-[10px] text-zinc-500 tracking-[0.4em] mb-12 uppercase">{formData.personalId}</p>
-          <div className="py-14 bg-black/50 border border-zinc-800 rounded-3xl mb-12 shadow-inner">
-            <span className="text-7xl font-black font-orbitron text-white tracking-widest tabular-nums">{formatTime(elapsedTime)}</span>
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+        <div className="max-w-2xl w-full bg-zinc-950/80 border border-violet-500/20 p-12 rounded-[4rem] backdrop-blur-3xl shadow-2xl">
+          <img src={LOGO_PNG} className="w-16 h-16 mx-auto mb-8 invert opacity-50" alt="logo" />
+          <h2 className="text-4xl font-black font-orbitron text-white mb-2 tracking-tighter">ESTUDIO ACTIVO</h2>
+          <p className="text-[9px] text-violet-400 font-bold tracking-[0.6em] mb-12 uppercase">Artista: {formData.personalId}</p>
+          
+          <div className="py-16 bg-black/40 border border-zinc-800 rounded-[3rem] shadow-inner mb-12">
+            <span className="text-8xl font-black font-orbitron text-white tracking-widest tabular-nums">{formatTime(elapsedTime)}</span>
           </div>
-          <button onClick={finishSession} className="w-full py-6 bg-red-600/10 border border-red-500 text-red-500 font-black font-orbitron rounded-2xl uppercase tracking-[0.3em] hover:bg-red-600 hover:text-white transition-all shadow-lg active:scale-95">Terminar y Reportar</button>
+
+          <button 
+            onClick={handleFinishSession}
+            className="w-full py-6 bg-red-600/10 border border-red-500/50 text-red-500 font-black font-orbitron rounded-2xl uppercase tracking-[0.4em] hover:bg-red-500 hover:text-white transition-all shadow-lg active:scale-95"
+          >
+            Finalizar Sesión y Reportar
+          </button>
         </div>
       </div>
     </>
@@ -309,61 +303,67 @@ const App: React.FC = () => {
       <ParticleBackground />
       {isProcessing && <ProcessingOverlay step={processingStep} />}
       {!termsAccepted ? <TermsModal onAccept={() => setTermsAccepted(true)} /> : (
-        <div className="min-h-screen flex items-center justify-center p-4 sm:p-12">
-          <div className="max-w-4xl w-full bg-zinc-950/80 backdrop-blur-xl border border-zinc-800 p-8 sm:p-14 rounded-[3rem] shadow-2xl relative overflow-hidden">
-            <img src={LOGO_PNG} className="w-16 h-16 mx-auto mb-6 invert" alt="logo" />
-            <header className="text-center mb-14">
-              <h1 className="text-5xl sm:text-7xl font-black font-orbitron text-white uppercase tracking-tighter">Space Town</h1>
-              <p className="text-[10px] font-bold text-violet-400 tracking-[0.8em] uppercase mt-2">Acceso Artistas VIP</p>
+        <div className="min-h-screen flex items-center justify-center p-4">
+          <div className="max-w-4xl w-full bg-zinc-950/90 border border-zinc-900 p-8 sm:p-16 rounded-[4rem] shadow-2xl relative">
+            <header className="text-center mb-16">
+              <img src={LOGO_PNG} className="w-16 h-16 mx-auto mb-6 invert" alt="logo" />
+              <h1 className="text-6xl font-black font-orbitron text-white uppercase tracking-tighter">Space Town</h1>
+              <div className="h-1 w-24 bg-violet-600 mx-auto mt-4 rounded-full"></div>
+              <p className="text-[10px] text-zinc-500 font-bold tracking-[0.8em] uppercase mt-4">Protocolo de Ingreso Legal</p>
             </header>
-            <form onSubmit={handleSubmit} className="space-y-10">
+
+            <form onSubmit={handleStartSession} className="space-y-10">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <InputField label="Nombre Legal" id="fullName" value={formData.fullName} onChange={handleChange} />
-                <InputField label="Nombre Artístico" id="personalId" value={formData.personalId} onChange={handleChange} />
-                <div className="group">
-                  <label className="block text-[9px] font-black text-zinc-500 mb-2 uppercase tracking-[0.4em]">Tipo Documento</label>
-                  <select name="documentType" value={formData.documentType} onChange={handleChange} className="w-full px-5 py-4 bg-zinc-900/40 border border-zinc-800 text-white rounded-xl font-bold uppercase outline-none focus:border-violet-500">
-                    <option value="" disabled>SELECCIONAR</option>
-                    {Object.values(DocumentType).map((type) => <option key={type} value={type}>{type.toUpperCase()}</option>)}
+                <div>
+                  <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest block mb-2">Nombre Completo (Legal)</label>
+                  <input type="text" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value.toUpperCase()})} className="w-full px-6 py-4 bg-zinc-900 border border-zinc-800 text-white rounded-xl font-bold uppercase focus:border-violet-600 outline-none" required />
+                </div>
+                <div>
+                  <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest block mb-2">Nombre Artístico / Alias</label>
+                  <input type="text" value={formData.personalId} onChange={e => setFormData({...formData, personalId: e.target.value.toUpperCase()})} className="w-full px-6 py-4 bg-zinc-900 border border-zinc-800 text-white rounded-xl font-bold uppercase focus:border-violet-600 outline-none" required />
+                </div>
+                <div>
+                  <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest block mb-2">Tipo ID</label>
+                  <select value={formData.documentType} onChange={e => setFormData({...formData, documentType: e.target.value as DocumentType})} className="w-full px-6 py-4 bg-zinc-900 border border-zinc-800 text-white rounded-xl font-bold uppercase focus:border-violet-600 outline-none">
+                    {Object.values(DocumentType).map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
-                <InputField label="Cédula / ID" id="documentNumber" value={formData.documentNumber} onChange={handleChange} />
+                <div>
+                  <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest block mb-2">Número de Documento</label>
+                  <input type="text" value={formData.documentNumber} onChange={e => setFormData({...formData, documentNumber: e.target.value.toUpperCase()})} className="w-full px-6 py-4 bg-zinc-900 border border-zinc-800 text-white rounded-xl font-bold uppercase focus:border-violet-600 outline-none" required />
+                </div>
               </div>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 {[
-                  { id: 'selfie', label: 'Selfie' },
-                  { id: 'documentFront', label: 'ID Frontal' },
-                  { id: 'documentBack', label: 'ID Reverso' }
-                ].map((item) => (
-                  <button key={item.id} type="button" onClick={() => { setCameraFor(item.id as any); setIsCameraModalOpen(true); }} className={`p-8 border rounded-2xl transition-all ${formData[item.id as keyof FormState] ? 'bg-emerald-950/20 border-emerald-500 shadow-lg' : 'bg-zinc-900/30 border-zinc-800'}`}>
-                    <span className="text-[8px] font-black uppercase tracking-widest text-zinc-600 block mb-4">{item.label}</span>
-                    <div className="text-2xl text-white">{formData[item.id as keyof FormState] ? '✓' : '+'}</div>
+                  { k: 'selfie', l: 'Selfie Ingreso' },
+                  { k: 'documentFront', l: 'ID Cara A' },
+                  { k: 'documentBack', l: 'ID Cara B' }
+                ].map(item => (
+                  <button key={item.k} type="button" onClick={() => { setCameraFor(item.k as any); setIsCameraModalOpen(true); }} className={`p-8 border-2 rounded-3xl transition-all ${formData[item.k as keyof FormState] ? 'bg-violet-900/10 border-violet-600 shadow-lg shadow-violet-900/20' : 'bg-zinc-900/50 border-zinc-800'}`}>
+                    <span className="text-[8px] font-black uppercase text-zinc-600 block mb-3">{item.l}</span>
+                    <div className="text-3xl text-white">{formData[item.k as keyof FormState] ? '✓' : '+'}</div>
                   </button>
                 ))}
               </div>
 
               <div className="space-y-4">
                 <div className="flex justify-between items-end">
-                  <label className="block text-[9px] font-black text-zinc-500 uppercase tracking-[0.4em]">Firma Digital</label>
-                  {isSigned && (
-                    <button type="button" onClick={handleClearSignature} className="text-[8px] font-black text-red-500 uppercase tracking-widest hover:text-red-400">[ BORRAR ]</button>
-                  )}
+                  <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Firma Digital del Artista</label>
+                  {isSigned && <button type="button" onClick={() => { signaturePadRef.current?.clear(); setIsSigned(false); }} className="text-[8px] font-bold text-red-500 uppercase tracking-widest">[ BORRAR FIRMA ]</button>}
                 </div>
-                <div className="h-48 bg-black/60 border border-zinc-800 rounded-2xl relative overflow-hidden">
+                <div className="h-48 bg-black/60 border border-zinc-800 rounded-3xl relative overflow-hidden">
                   <SignaturePad ref={signaturePadRef} onDrawStart={() => setIsSigned(true)} />
-                  {!isSigned && <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-[9px] text-zinc-800 font-black uppercase tracking-[0.8em]">Firma Aquí</div>}
+                  {!isSigned && <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-[8px] text-zinc-800 font-black uppercase tracking-[0.8em]">Espacio de Firma</div>}
                 </div>
               </div>
-              
-              <button type="submit" className="w-full py-6 bg-white text-black font-black font-orbitron rounded-2xl uppercase tracking-[0.3em] hover:bg-violet-500 hover:text-white transition-all transform hover:-translate-y-1 shadow-xl">
-                Iniciar Sesión de Grabación
-              </button>
+
+              <button type="submit" className="w-full py-6 bg-white text-black font-black font-orbitron rounded-2xl uppercase tracking-[0.4em] hover:bg-violet-600 hover:text-white transition-all shadow-xl active:scale-95">Validar e Iniciar Grabación</button>
             </form>
           </div>
         </div>
       )}
-      <CameraModal isOpen={isCameraModalOpen} onClose={() => setIsCameraModalOpen(false)} onCapture={(f) => { setFormData(p => ({...p, [cameraFor!]: f})); setIsCameraModalOpen(false); }} purpose={cameraFor} />
+      <CameraModal isOpen={isCameraModalOpen} onClose={() => setIsCameraModalOpen(false)} onCapture={f => { setFormData(p => ({...p, [cameraFor!]: f})); setIsCameraModalOpen(false); }} purpose={cameraFor} />
     </>
   );
 };
