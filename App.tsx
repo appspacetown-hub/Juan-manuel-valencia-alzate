@@ -48,7 +48,6 @@ const App: React.FC = () => {
   const [processingStep, setProcessingStep] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isSessionActive, setIsSessionActive] = useState(false);
-  const [showFinished, setShowFinished] = useState(false);
 
   const signaturePadRef = useRef<SignaturePadRef>(null);
 
@@ -68,7 +67,7 @@ const App: React.FC = () => {
 
     try {
       const upData = new FormData();
-      upData.append('file', pdfBlob, 'contrato_vip_spacetown.pdf');
+      upData.append('file', pdfBlob, 'contrato_spacetown.pdf');
       const res = await fetch('https://tmpfiles.org/api/v1/upload', {
         method: 'POST',
         body: upData,
@@ -158,7 +157,8 @@ const App: React.FC = () => {
       doc.text("2. REGISTRO FOTOGRÁFICO DE SEGURIDAD", 20, y);
       y += 8;
       doc.addImage(formData.selfie, 'JPEG', 25, y, 40, 40);
-      if (formData.documentFront) doc.addImage(formData.documentFront, 'JPEG', 75, y, 55, 35);
+      if (formData.documentFront) doc.addImage(formData.documentFront, 'JPEG', 70, y, 55, 35);
+      if (formData.documentBack) doc.addImage(formData.documentBack, 'JPEG', 130, y, 55, 35);
       
       y += 50;
       doc.setFontSize(9);
@@ -170,8 +170,7 @@ const App: React.FC = () => {
       const terminos = [
         "01. ADMISIÓN: El club se reserva el derecho de permanencia según protocolos de seguridad.",
         "02. BIOMETRÍA: El usuario autoriza la captura de su imagen para control de acceso (Ley 1581/2012).",
-        "03. RESPONSABILIDAD: El invitado es responsable de su conducta y del consumo moderado.",
-        "04. SALIDA: El usuario se compromete a reportar su salida oficial para finalizar el registro."
+        "03. RESPONSABILIDAD: El invitado es responsable de su conducta y del consumo moderado."
       ];
 
       doc.setFont("helvetica", "normal");
@@ -199,7 +198,6 @@ const App: React.FC = () => {
       doc.text("FIRMA DEL ARTISTA/INVITADO", 25, y + 5);
 
       const pdfBlob = doc.output('blob');
-      doc.save(`CONTRATO_VIP_${formData.documentNumber}.pdf`);
 
       setProcessingStep("SINCRONIZANDO EXPEDIENTE...");
       const link = await uploadPdfToCloud(pdfBlob);
@@ -228,43 +226,8 @@ const App: React.FC = () => {
     }
   };
 
-  const handleFinishSession = async () => {
-    if (!confirm(`¿Confirmar salida oficial de ${formData.fullName}?`)) return;
-    setIsProcessing(true);
-    setProcessingStep("GENERANDO REPORTE DE SALIDA...");
-    try {
-      const doc = new jsPDF();
-      let y = applyLegalTemplate(doc, "Cierre de Registro", 1);
-      doc.setFont("helvetica", "bold");
-      doc.text("REPORTE DE SALIDA OFICIAL", 20, y);
-      y += 15;
-      doc.text(`ARTISTA: ${formData.fullName}`, 25, y);
-      doc.text(`HORA: ${getFullTimestamp()}`, 120, y);
-      const pdfBlob = doc.output('blob');
-      doc.save(`SALIDA_VIP_${formData.documentNumber}.pdf`);
-      const link = await uploadPdfToCloud(pdfBlob);
-      if (window.emailjs) {
-        await window.emailjs.send(APP_CONFIG.EMAILJS.SERVICE_ID, APP_CONFIG.EMAILJS.TEMPLATE_ID, {
-          to_email: APP_CONFIG.RECIPIENT_EMAIL,
-          full_name: formData.fullName,
-          doc_number: formData.documentNumber,
-          download_link: link,
-          pdf_link: link,
-          name: formData.fullName,
-          message: `SALIDA CONFIRMADA: El artista ha abandonado el club.`
-        });
-      }
-    } catch (e) { console.error(e); } finally {
-      localStorage.removeItem('st_club_active');
-      setIsProcessing(false);
-      setShowFinished(true);
-      setIsSessionActive(false);
-    }
-  };
-
   const resetAll = () => {
     localStorage.removeItem('st_club_active');
-    setShowFinished(false);
     setIsSessionActive(false);
     setFormData({ fullName: '', documentType: DocumentType.CedulaDeCiudadania, documentNumber: '', artisticName: '', });
     setTermsAccepted(false);
@@ -286,17 +249,6 @@ const App: React.FC = () => {
     if (window.emailjs) window.emailjs.init(APP_CONFIG.EMAILJS.PUBLIC_KEY);
   }, []);
 
-  if (showFinished) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#050505] p-6 font-orbitron">
-      <div className="max-w-md w-full bg-zinc-900 border border-violet-500/30 p-12 rounded-[3rem] text-center shadow-2xl">
-        <div className="w-24 h-24 bg-violet-500/10 text-violet-500 rounded-full flex items-center justify-center mx-auto mb-10 text-5xl border border-violet-500/20">✓</div>
-        <h2 className="text-3xl font-black text-white mb-4 uppercase tracking-tighter neon-text">OPERACIÓN EXITOSA</h2>
-        <p className="text-zinc-500 text-[10px] mb-12 tracking-[0.3em] uppercase font-bold">Registro de salida completado.</p>
-        <button onClick={resetAll} className="w-full py-6 bg-white text-black font-black rounded-2xl uppercase text-[11px] tracking-[0.3em] hover:bg-violet-600 hover:text-white transition-all transform hover:scale-105 shadow-xl">Nuevo Registro</button>
-      </div>
-    </div>
-  );
-
   if (isSessionActive) return (
     <>
       <ParticleBackground />
@@ -304,7 +256,7 @@ const App: React.FC = () => {
       <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
         <div className="max-w-2xl w-full bg-zinc-950/70 border border-violet-500/20 p-12 rounded-[4.5rem] backdrop-blur-3xl shadow-2xl">
           <div className="mb-10 text-center">
-            <h2 className="text-4xl font-black font-orbitron text-white mb-3 tracking-tighter neon-text">VIP ACTIVO</h2>
+            <h2 className="text-4xl font-black font-orbitron text-white mb-3 tracking-tighter neon-text">ACCESO ACTIVO</h2>
             <div className="w-24 h-1 bg-violet-600 mx-auto mb-8 rounded-full shadow-[0_0_15px_#8b5cf6]"></div>
             <p className="text-[16px] text-white font-black tracking-[0.2em] uppercase mb-2">{formData.fullName}</p>
             <p className="text-[10px] text-violet-400 font-bold tracking-[0.4em] uppercase opacity-80">ID: {formData.documentNumber}</p>
@@ -315,7 +267,7 @@ const App: React.FC = () => {
                Bienvenido a Space Town Club.<br/>Tu identidad ha sido verificada legalmente.<br/>Disfruta la experiencia.
              </p>
           </div>
-          <button onClick={handleFinishSession} className="w-full py-8 bg-red-600 text-white font-black font-orbitron rounded-[2.5rem] uppercase tracking-[0.4em] text-[12px] hover:bg-red-500 transition-all shadow-2xl active:scale-95 border border-red-500/50">Cerrar Registro Oficial</button>
+          <button onClick={resetAll} className="w-full py-8 bg-violet-600 text-white font-black font-orbitron rounded-[2.5rem] uppercase tracking-[0.4em] text-[12px] hover:bg-violet-500 transition-all shadow-2xl active:scale-95 border border-violet-500/50">Nuevo Registro</button>
         </div>
       </div>
     </>
@@ -330,7 +282,7 @@ const App: React.FC = () => {
           <div className="max-w-4xl w-full bg-zinc-950/80 border border-zinc-900 p-8 sm:p-20 rounded-[5rem] shadow-2xl relative overflow-hidden">
             <header className="text-center mb-16">
               <h1 className="text-5xl sm:text-7xl font-black font-orbitron text-white uppercase tracking-tighter neon-text">{APP_CONFIG.CLUB_NAME}</h1>
-              <p className="text-[10px] text-zinc-500 font-bold tracking-[0.8em] uppercase mt-6">Protocolo de Registro Legal de Artistas</p>
+              <p className="text-[10px] text-zinc-500 font-bold tracking-[0.8em] uppercase mt-6">Protocolo de Registro Legal</p>
             </header>
             <form onSubmit={handleStartSession} className="space-y-12">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
